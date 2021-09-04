@@ -157,7 +157,7 @@ function SWEP:DrawWorldModel()
     end
 
     local hand = 0
-    if self:GetOwner():IsValid() and self:GetOwner():LookupAttachment(self.CustomAttatchment) then
+    if self:GetOwner():LookupAttachment(self.CustomAttatchment) then
         hand = self:GetOwner():LookupAttachment(self.CustomAttatchment)
     end
 

@@ -72,6 +72,7 @@ function SWEP:PlayerHide()
 end
 
 function SWEP:PlayerUnhide()
+    self:GetOwner():SetColor(Color(255, 255, 255, 255))
     self:GetOwner():SetMaterial("models/glass")
     self:EmitSound(HealSound1)
     timer.Stop("use_ammo" .. self:EntIndex())
@@ -125,7 +126,7 @@ function SWEP:DrawWorldModel()
     end
 
     local hand = 0
-    if self:GetOwner():IsValid() and self:GetOwner():LookupAttachment(self.CustomAttatchment) then
+    if self:GetOwner():LookupAttachment(self.CustomAttatchment) then
         hand = self:GetOwner():LookupAttachment(self.CustomAttatchment)
     end
 
