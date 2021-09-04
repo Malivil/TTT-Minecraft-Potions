@@ -1,0 +1,5 @@
+VertexLitGeneric
+{
+  $basetexture "models/minecraft_original/mc_poison"
+  $surfaceprop "glass"
+}
