@@ -91,7 +91,7 @@ function SWEP:SecondaryAttack()
     powner:SetVelocity(Vector(0,0,200))
     self:TakePrimaryAmmo(5)
     if self:Clip1() <= 0 then
-        self:Remove()
+        if SERVER then self:Remove() end
         self:EmitSound(DestroySound)
     end
 end

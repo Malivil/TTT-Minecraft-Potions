@@ -59,12 +59,14 @@ end
 function SWEP:PlayerHide()
     self:GetOwner():SetColor(Color(0, 0, 255, 255))
     self:EmitSound(HealSound2)
-    self:GetOwner():GodEnable()
+    if SERVER then
+        self:GetOwner():GodEnable()
+    end
     self:TakePrimaryAmmo(1)
     timer.Create("use_ammo" .. self:EntIndex(), 0.1, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
-            self:Remove()
+            if SERVER then self:Remove() end
             self:EmitSound(DestroySound)
         end
     end)
@@ -74,7 +76,9 @@ end
 function SWEP:PlayerUnhide()
     self:GetOwner():SetColor(Color(255, 255, 255, 255))
     self:EmitSound(HealSound1)
-    self:GetOwner():GodDisable()
+    if SERVER then
+        self:GetOwner():GodDisable()
+    end
     timer.Stop("use_ammo" .. self:EntIndex())
     Hidden = false
 end

@@ -57,11 +57,10 @@ end
 
 function SWEP:DoPoison(ent, primary)
     local owner = self:GetOwner()
-    local need = self.HealAmount
     if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
-        need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
-
+        local need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
         self:TakePrimaryAmmo(need)
+
         local spos = owner:GetShootPos()
         local sdest = spos + (owner:GetAimVector() * -10)
         local dmg = DamageInfo()
