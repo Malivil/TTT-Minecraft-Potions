@@ -40,6 +40,7 @@ SWEP.CustomPositon         = true
 SWEP.CustomAttatchment     = "anim_attachment_rh"
 SWEP.CustomVector          = Vector(-3,0,0)
 SWEP.CustomAngle           = Angle(-23,0,0)
+SWEP.Kind                  = WEAPON_NADE
 
 local HealSound1           = Sound("minecraft_original/drink1.wav")
 local HealSound2           = Sound("minecraft_original/glass1.wav")
@@ -66,7 +67,7 @@ function SWEP:DoPoison(ent, primary)
         local dmg = DamageInfo()
         dmg:SetDamage(need)
         dmg:SetAttacker(owner)
-        dmg:SetInflictor(self.Weapon or self)
+        dmg:SetInflictor(self)
         dmg:SetDamageForce(owner:GetAimVector() * 3)
         dmg:SetDamagePosition(owner:GetPos())
         dmg:SetDamageType(DMG_POISON)

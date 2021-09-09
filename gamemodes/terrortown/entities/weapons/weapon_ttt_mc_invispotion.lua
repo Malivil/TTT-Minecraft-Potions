@@ -40,6 +40,7 @@ SWEP.CustomPositon         = true
 SWEP.CustomAttatchment     = "anim_attachment_rh"
 SWEP.CustomVector          = Vector(-3,0,0)
 SWEP.CustomAngle           = Angle(-23,0,0)
+SWEP.Kind                  = WEAPON_NADE
 
 local HealSound1           = Sound("minecraft_original/invisible_end.wav")
 local HealSound2           = Sound("minecraft_original/invisible_start.wav")
