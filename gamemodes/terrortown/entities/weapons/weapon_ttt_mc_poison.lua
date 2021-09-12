@@ -4,7 +4,7 @@ SWEP.HoldType              = "ar2"
 
 if CLIENT then
    SWEP.PrintName          = "Poison"
-   SWEP.Slot               = 4
+   SWEP.Slot               = 3
 
    SWEP.ViewModelFlip      = false
    SWEP.ViewModelFOV       = 54
@@ -35,11 +35,11 @@ SWEP.Spawnable             = true
 SWEP.UseHands              = true
 SWEP.ViewModel             = "models/minecraft_original/mc_poison_h.mdl"
 SWEP.WorldModel            = "models/minecraft_original/mc_poison_h.mdl"
+SWEP.WorldModelEnt         = nil
 
-SWEP.CustomPositon         = true
-SWEP.CustomAttatchment     = "anim_attachment_rh"
-SWEP.CustomVector          = Vector(-3,0,0)
-SWEP.CustomAngle           = Angle(-23,0,0)
+SWEP.CustomAttatchment     = "ValveBiped.Bip01_R_Hand"
+SWEP.CustomVector          = Vector(5, -2.7, -3.4)
+SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.Kind                  = WEAPON_NADE
 
 local HealSound1           = Sound("minecraft_original/drink1.wav")
@@ -50,6 +50,8 @@ local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 function SWEP:Initialize()
     self:SetHoldType("slam")
+    self:SetMoveType(MOVETYPE_VPHYSICS)
+    self:SetSolid(SOLID_VPHYSICS)
 end
 
 function SWEP:Equip()
@@ -130,6 +132,17 @@ end
 
 function SWEP:OnRemove()
     timer.Stop("weapon_idle" .. self:EntIndex())
+
+    if CLIENT then
+        if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
+            RunConsoleCommand("lastinv")
+        end
+
+        if IsValid(self.WorldModelEnt) then
+            self.WorldModelEnt:Remove()
+            self.WorldModelEnt = nil
+        end
+    end
 end
 
 function SWEP:Holster()
@@ -137,45 +150,33 @@ function SWEP:Holster()
     return true
 end
 
-function SWEP:CustomAmmoDisplay()
-    self.AmmoDisplay = self.AmmoDisplay or {}
-    self.AmmoDisplay.Draw = true
-    self.AmmoDisplay.PrimaryClip = self:Clip1()
+if CLIENT then
+    function SWEP:DrawWorldModel()
+        if not self.WorldModelEnt then
+            self.WorldModelEnt = ClientsideModel(self.WorldModel)
+            self.WorldModelEnt:SetSkin(1)
+            self.WorldModelEnt:SetNoDraw(true)
+        end
 
-    return self.AmmoDisplay
-end
+        local owner = self:GetOwner()
+        if IsValid(owner) then
+            local boneid = owner:LookupBone(self.CustomAttatchment)
+            if boneid <= 0 then return end
 
---Position
-function SWEP:DrawWorldModel()
-    if not self.CustomPositon then
-        self:DrawModel()
-        return
+            local matrix = owner:GetBoneMatrix(boneid)
+            if not matrix then return end
+
+            local newPos, newAng = LocalToWorld(self.CustomVector, self.CustomAngle, matrix:GetTranslation(), matrix:GetAngles())
+
+            self.WorldModelEnt:SetPos(newPos)
+            self.WorldModelEnt:SetAngles(newAng)
+
+            self.WorldModelEnt:SetupBones()
+        else
+            self.WorldModelEnt:SetPos(self:GetPos())
+            self.WorldModelEnt:SetAngles(self:GetAngles())
+        end
+
+        self.WorldModelEnt:DrawModel()
     end
-
-    if not self:GetOwner():IsValid() then
-        self:DrawModel()
-        return
-    end
-
-    local hand = 0
-    if self:GetOwner():LookupAttachment(self.CustomAttatchment) then
-        hand = self:GetOwner():LookupAttachment(self.CustomAttatchment)
-    end
-
-    if hand <= 0 then
-        self:DrawModel()
-        return
-    end
-
-    hand = self:GetOwner():GetAttachment(hand)
-    local vector = hand.Ang:Right() * self.CustomVector.x + hand.Ang:Forward() * self.CustomVector.y + hand.Ang:Up() * self.CustomVector.z
-
-    hand.Ang:RotateAroundAxis(hand.Ang:Right(), self.CustomAngle.x)
-    hand.Ang:RotateAroundAxis(hand.Ang:Forward(), self.CustomAngle.y)
-    hand.Ang:RotateAroundAxis(hand.Ang:Up(), self.CustomAngle.z)
-
-    self:SetRenderOrigin(hand.Pos + vector)
-    self:SetRenderAngles(hand.Ang)
-
-    self:DrawModel()
 end
