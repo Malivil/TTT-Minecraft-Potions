@@ -15,7 +15,6 @@ end
 
 SWEP.Base                  = "weapon_tttbase"
 
-SWEP.UseHands              = true
 SWEP.HealAmount            = 20
 SWEP.MaxAmmo               = 100
 SWEP.Primary.Delay         = 0.19
@@ -32,14 +31,15 @@ SWEP.Primary.Sound         = Sound("Weapon_M4A1.Single")
 SWEP.AutoSpawnable         = true
 SWEP.Spawnable             = true
 
-SWEP.UseHands              = true
+SWEP.UseHands              = false
 SWEP.ViewModel             = "models/minecraft_original/mc_speedpotion.mdl"
 SWEP.WorldModel            = "models/minecraft_original/mc_speedpotion.mdl"
 SWEP.WorldModelEnt         = nil
 
 SWEP.CustomAttatchment     = "ValveBiped.Bip01_R_Hand"
-SWEP.CustomVector          = Vector(5, -2.7, -3.4)
-SWEP.CustomAngle           = Angle(180, 90, 0)
+SWEP.CustomWorldVector     = Vector(5, -2.7, 0)
+SWEP.CustomWorldAngle      = Angle(180, 90, 0)
+SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
 
 local HealSound1           = Sound("minecraft_original/speed_end.wav")
@@ -168,7 +168,7 @@ if CLIENT then
             local matrix = owner:GetBoneMatrix(boneid)
             if not matrix then return end
 
-            local newPos, newAng = LocalToWorld(self.CustomVector, self.CustomAngle, matrix:GetTranslation(), matrix:GetAngles())
+            local newPos, newAng = LocalToWorld(self.CustomWorldVector, self.CustomWorldAngle, matrix:GetTranslation(), matrix:GetAngles())
 
             self.WorldModelEnt:SetPos(newPos)
             self.WorldModelEnt:SetAngles(newAng)
@@ -180,5 +180,10 @@ if CLIENT then
         end
 
         self.WorldModelEnt:DrawModel()
+    end
+
+    function SWEP:CalcViewModelView(vm, oldEyePos, oldEyeAng, eyePos, eyeAng)
+        local newPos, _ = LocalToWorld(self.CustomViewVector, self.CustomWorldAngle, eyePos, eyeAng)
+        return newPos, eyeAng
     end
 end
