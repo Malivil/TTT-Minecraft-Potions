@@ -57,6 +57,10 @@ function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
+
+    if CLIENT then
+        self:AddHUDHelp("Left-click to push your target", "Right-click to grant yourself a temporary speed boost", false)
+    end
 end
 
 function SWEP:Equip()

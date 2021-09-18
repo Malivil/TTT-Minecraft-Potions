@@ -52,6 +52,10 @@ function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
+
+    if CLIENT then
+        self:AddHUDHelp("Left-click to poison your target over time", "Right-click to poison yourself instantly", false)
+    end
 end
 
 function SWEP:Equip()
@@ -113,6 +117,8 @@ function SWEP:PrimaryAttack()
     local ent = tr.Entity
     self:DoPoison(ent, true, function(owner, target, damage)
         timer.Create("McPoisonTicket_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex(), 1, damage, function()
+            if not IsValid(target) or not target:Alive() or target:IsSpec() then return end
+
             local dmg = DamageInfo()
             dmg:SetDamage(1)
             dmg:SetAttacker(owner)

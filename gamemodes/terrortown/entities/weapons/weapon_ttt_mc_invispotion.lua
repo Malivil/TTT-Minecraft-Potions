@@ -53,6 +53,10 @@ function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
+
+    if CLIENT then
+        self:AddHUDHelp("Right-click to grant yourself temporary invisibility", false)
+    end
 end
 
 function SWEP:Equip()

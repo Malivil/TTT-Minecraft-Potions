@@ -52,6 +52,10 @@ function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
+
+    if CLIENT then
+        self:AddHUDHelp("Left-click to heal your target", "Right-click to heal yourself", false)
+    end
 end
 
 function SWEP:Equip()
