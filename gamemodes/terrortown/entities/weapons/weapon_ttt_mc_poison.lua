@@ -58,23 +58,13 @@ function SWEP:Equip()
     self:EmitSound(EquipSound)
 end
 
-function SWEP:DoPoison(ent, primary)
+function SWEP:DoPoison(ent, primary, action)
     local owner = self:GetOwner()
     if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
         local need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
         self:TakePrimaryAmmo(need)
 
-        local spos = owner:GetShootPos()
-        local sdest = spos + (owner:GetAimVector() * -10)
-        local dmg = DamageInfo()
-        dmg:SetDamage(need)
-        dmg:SetAttacker(owner)
-        dmg:SetInflictor(self)
-        dmg:SetDamageForce(owner:GetAimVector() * 3)
-        dmg:SetDamagePosition(owner:GetPos())
-        dmg:SetDamageType(DMG_POISON)
-
-        ent:DispatchTraceAttack(dmg, spos + (owner:GetAimVector() * -1), sdest)
+        action(owner, ent, need)
         ent:EmitSound(primary and HealSound2 or HealSound1)
         if self:Clip1() <= 0 then
             self:Remove()
@@ -121,13 +111,34 @@ function SWEP:PrimaryAttack()
     end
 
     local ent = tr.Entity
-    self:DoPoison(ent, true)
+    self:DoPoison(ent, true, function(owner, target, damage)
+        timer.Create("McPoisonTicket_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex(), 1, damage, function()
+            local dmg = DamageInfo()
+            dmg:SetDamage(1)
+            dmg:SetAttacker(owner)
+            if IsValid(self) then
+                dmg:SetInflictor(self)
+            end
+            dmg:SetDamagePosition(owner:GetPos())
+            dmg:SetDamageType(DMG_POISON)
+
+            target:TakeDamageInfo(dmg)
+        end)
+    end)
 end
 
 function SWEP:SecondaryAttack()
     if CLIENT then return end
 
-    self:DoPoison(self:GetOwner())
+    self:DoPoison(self:GetOwner(), false, function(owner, target, damage)
+        local hp = target:Health()
+        local new_hp = hp - damage
+        if new_hp <= 0 then
+            target:Kill()
+        else
+            target:SetHealth(new_hp)
+        end
+    end)
 end
 
 function SWEP:OnRemove()
