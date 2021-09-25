@@ -36,9 +36,9 @@ SWEP.ViewModel             = "models/minecraft_original/mc_jumppotion.mdl"
 SWEP.WorldModel            = "models/minecraft_original/mc_jumppotion.mdl"
 SWEP.WorldModelEnt         = nil
 
-SWEP.CustomAttatchment     = "ValveBiped.Bip01_R_Hand"
+SWEP.CustomAttachment      = "ValveBiped.Bip01_R_Hand"
 SWEP.CustomWorldVector     = Vector(5, -2.7, 0)
-SWEP.CustomWorldAngle      = Angle(180, 90, 0)
+SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
 
@@ -124,19 +124,18 @@ if CLIENT then
     function SWEP:DrawWorldModel()
         if not self.WorldModelEnt then
             self.WorldModelEnt = ClientsideModel(self.WorldModel)
-            self.WorldModelEnt:SetSkin(1)
             self.WorldModelEnt:SetNoDraw(true)
         end
 
         local owner = self:GetOwner()
         if IsValid(owner) then
-            local boneid = owner:LookupBone(self.CustomAttatchment)
+            local boneid = owner:LookupBone(self.CustomAttachment)
             if boneid <= 0 then return end
 
             local matrix = owner:GetBoneMatrix(boneid)
             if not matrix then return end
 
-            local newPos, newAng = LocalToWorld(self.CustomWorldVector, self.CustomWorldAngle, matrix:GetTranslation(), matrix:GetAngles())
+            local newPos, newAng = LocalToWorld(self.CustomWorldVector, self.CustomAngle, matrix:GetTranslation(), matrix:GetAngles())
 
             self.WorldModelEnt:SetPos(newPos)
             self.WorldModelEnt:SetAngles(newAng)
@@ -151,7 +150,7 @@ if CLIENT then
     end
 
     function SWEP:CalcViewModelView(vm, oldEyePos, oldEyeAng, eyePos, eyeAng)
-        local newPos, _ = LocalToWorld(self.CustomViewVector, self.CustomWorldAngle, eyePos, eyeAng)
+        local newPos, _ = LocalToWorld(self.CustomViewVector, self.CustomAngle, eyePos, eyeAng)
         return newPos, eyeAng
     end
 end
