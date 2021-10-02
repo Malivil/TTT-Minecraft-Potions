@@ -62,89 +62,106 @@ function SWEP:Equip()
     self:EmitSound(EquipSound)
 end
 
-function SWEP:DoPoison(ent, primary, action)
-    local owner = self:GetOwner()
-    if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
-        local need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
-        self:TakePrimaryAmmo(need)
-
-        action(owner, ent, need)
-        ent:EmitSound(primary and HealSound2 or HealSound1)
-        if self:Clip1() <= 0 then
-            self:Remove()
-            ent:EmitSound(DestroySound)
+if SERVER then
+    local poisonTimers = {}
+    local function StopPoison()
+        for _, timerId in ipairs(poisonTimers) do
+            timer.Remove(timerId)
         end
-
-        self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-
-        if primary then
-            self:SetNextPrimaryFire(CurTime() + self:SequenceDuration() + 0.5)
-        else
-            self:SetNextSecondaryFire(CurTime() + self:SequenceDuration() + 0.5)
-        end
-        owner:SetAnimation(PLAYER_ATTACK1)
-
-        timer.Create("weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function()
-            if IsValid(self) then self:SendWeaponAnim(ACT_VM_IDLE) end
-        end)
-    else
-        owner:EmitSound(DenySound)
-        if primary then
-            self:SetNextPrimaryFire(CurTime() + 1)
-        else
-            self:SetNextSecondaryFire(CurTime() + 1)
-        end
+        table.Empty(poisonTimers)
     end
-end
+    hook.Add("TTTEndRound", "McPoisonResetTimers_EndRound", StopPoison)
+    hook.Add("TTTPrepareRound", "McPoisonResetTimers_PrepRound", StopPoison)
 
-function SWEP:PrimaryAttack()
-    if CLIENT then return end
+    function SWEP:DoPoison(ent, primary, action)
+        local owner = self:GetOwner()
+        if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
+            local need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
+            self:TakePrimaryAmmo(need)
 
-    if self:GetOwner():IsPlayer() then
-        self:GetOwner():LagCompensation(true)
-    end
-
-    local tr = util.TraceLine({
-        start = self:GetOwner():GetShootPos(),
-        endpos = self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 64,
-        filter = self:GetOwner()
-    })
-
-    if self:GetOwner():IsPlayer() then
-        self:GetOwner():LagCompensation(false)
-    end
-
-    local ent = tr.Entity
-    self:DoPoison(ent, true, function(owner, target, damage)
-        timer.Create("McPoisonTicket_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex(), 1, damage, function()
-            if not IsValid(target) or not target:Alive() or target:IsSpec() then return end
-
-            local dmg = DamageInfo()
-            dmg:SetDamage(1)
-            dmg:SetAttacker(owner)
-            if IsValid(self) then
-                dmg:SetInflictor(self)
+            action(owner, ent, need)
+            ent:EmitSound(primary and HealSound2 or HealSound1)
+            if self:Clip1() <= 0 then
+                self:Remove()
+                ent:EmitSound(DestroySound)
             end
-            dmg:SetDamagePosition(owner:GetPos())
-            dmg:SetDamageType(DMG_POISON)
 
-            target:TakeDamageInfo(dmg)
-        end)
-    end)
-end
+            self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 
-function SWEP:SecondaryAttack()
-    if CLIENT then return end
+            if primary then
+                self:SetNextPrimaryFire(CurTime() + self:SequenceDuration() + 0.5)
+            else
+                self:SetNextSecondaryFire(CurTime() + self:SequenceDuration() + 0.5)
+            end
+            owner:SetAnimation(PLAYER_ATTACK1)
 
-    self:DoPoison(self:GetOwner(), false, function(owner, target, damage)
-        local hp = target:Health()
-        local new_hp = hp - damage
-        if new_hp <= 0 then
-            target:Kill()
+            timer.Create("weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function()
+                if IsValid(self) then self:SendWeaponAnim(ACT_VM_IDLE) end
+            end)
         else
-            target:SetHealth(new_hp)
+            owner:EmitSound(DenySound)
+            if primary then
+                self:SetNextPrimaryFire(CurTime() + 1)
+            else
+                self:SetNextSecondaryFire(CurTime() + 1)
+            end
         end
-    end)
+    end
+
+    function SWEP:PrimaryAttack()
+        if self:GetOwner():IsPlayer() then
+            self:GetOwner():LagCompensation(true)
+        end
+
+        local tr = util.TraceLine({
+            start = self:GetOwner():GetShootPos(),
+            endpos = self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 64,
+            filter = self:GetOwner()
+        })
+
+        if self:GetOwner():IsPlayer() then
+            self:GetOwner():LagCompensation(false)
+        end
+
+        local ent = tr.Entity
+        self:DoPoison(ent, true, function(owner, target, damage)
+            local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
+            table.insert(poisonTimers, timerId)
+            timer.Create(timerId, 1, damage, function()
+                -- If something happens to the target, stop trying to poison them
+                if not IsValid(target) or not target:Alive() or target:IsSpec() then
+                    timer.Remove(timerId)
+                    return
+                end
+
+                local dmg = DamageInfo()
+                dmg:SetDamage(1)
+                dmg:SetAttacker(owner)
+                if IsValid(self) then
+                    dmg:SetInflictor(self)
+                end
+                dmg:SetDamagePosition(owner:GetPos())
+                dmg:SetDamageType(DMG_POISON)
+
+                target:TakeDamageInfo(dmg)
+            end)
+        end)
+    end
+
+    function SWEP:SecondaryAttack()
+        self:DoPoison(self:GetOwner(), false, function(owner, target, damage)
+            local hp = target:Health()
+            local new_hp = hp - damage
+            if new_hp <= 0 then
+                target:Kill()
+            else
+                target:SetHealth(new_hp)
+            end
+        end)
+    end
+else
+    function SWEP:PrimaryAttack() end
+    function SWEP:SecondaryAttack() end
 end
 
 function SWEP:OnRemove()
