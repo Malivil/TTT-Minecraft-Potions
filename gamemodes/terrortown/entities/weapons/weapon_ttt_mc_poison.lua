@@ -70,8 +70,9 @@ if SERVER then
         end
         table.Empty(poisonTimers)
     end
-    hook.Add("TTTEndRound", "McPoisonResetTimers_EndRound", StopPoison)
     hook.Add("TTTPrepareRound", "McPoisonResetTimers_PrepRound", StopPoison)
+    hook.Add("TTTBeginRound", "McPoisonResetTimers_BeginRound", StopPoison)
+    hook.Add("TTTEndRound", "McPoisonResetTimers_EndRound", StopPoison)
 
     function SWEP:DoPoison(ent, primary, action)
         local owner = self:GetOwner()
