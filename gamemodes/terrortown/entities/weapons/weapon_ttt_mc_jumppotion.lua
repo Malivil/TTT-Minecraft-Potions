@@ -130,7 +130,7 @@ if CLIENT then
         local owner = self:GetOwner()
         if IsValid(owner) then
             local boneid = owner:LookupBone(self.CustomAttachment)
-            if boneid <= 0 then return end
+            if not boneid or boneid <= 0 then return end
 
             local matrix = owner:GetBoneMatrix(boneid)
             if not matrix then return end
