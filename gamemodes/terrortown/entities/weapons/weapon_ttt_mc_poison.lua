@@ -141,7 +141,7 @@ if SERVER then
                 if IsValid(self) then
                     dmg:SetInflictor(self)
                 end
-                dmg:SetDamagePosition(owner:GetPos())
+                dmg:SetDamagePosition(target:GetPos())
                 dmg:SetDamageType(DMG_POISON)
 
                 target:TakeDamageInfo(dmg)
