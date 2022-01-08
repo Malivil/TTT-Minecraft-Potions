@@ -79,8 +79,12 @@ function SWEP:PlayerHide()
 end
 
 function SWEP:PlayerUnhide()
-    self:GetOwner():SetColor(Color(255, 255, 255, 255))
-    self:GetOwner():SetMaterial("models/glass")
+    local owner = self:GetOwner()
+    if IsValid(owner) then
+        owner:SetColor(Color(255, 255, 255, 255))
+        owner:SetMaterial("models/glass")
+    end
+
     self:EmitSound(HealSound1)
     timer.Stop("use_ammo" .. self:EntIndex())
     Hidden = false

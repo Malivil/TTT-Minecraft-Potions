@@ -85,8 +85,13 @@ end
 
 function SWEP:PlayerUnhide()
     self:EmitSound(HealSound1)
-    self:GetOwner():SetWalkSpeed(InitWalkSpeed)
-    self:GetOwner():SetRunSpeed(InitRunSpeed)
+
+    local owner = self:GetOwner()
+    if IsValid(owner) then
+        owner:SetWalkSpeed(InitWalkSpeed)
+        owner:SetRunSpeed(InitRunSpeed)
+    end
+
     timer.Stop("use_ammo" .. self:EntIndex())
     Hidden = false
 end

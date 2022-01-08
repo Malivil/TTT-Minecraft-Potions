@@ -81,11 +81,16 @@ function SWEP:PlayerHide()
 end
 
 function SWEP:PlayerUnhide()
-    self:GetOwner():SetColor(Color(255, 255, 255, 255))
     self:EmitSound(HealSound1)
-    if SERVER then
-        self:GetOwner():GodDisable()
+
+    local owner = self:GetOwner()
+    if IsValid(owner) then
+        owner:SetColor(Color(255, 255, 255, 255))
+        if SERVER then
+            owner:GodDisable()
+        end
     end
+
     timer.Stop("use_ammo" .. self:EntIndex())
     Hidden = false
 end
