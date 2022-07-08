@@ -48,6 +48,10 @@ local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
+if SERVER then
+    CreateConVar("ttt_mc_poison_alt_damage", "0", FCVAR_NONE, "Whether to use an alternate type of damage")
+end
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -125,6 +129,7 @@ if SERVER then
         end
 
         local ent = tr.Entity
+        local alt_damage = GetConVar("ttt_mc_poison_alt_damage"):GetBool()
         self:DoPoison(ent, true, function(owner, target, damage)
             local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
             table.insert(poisonTimers, timerId)
@@ -142,7 +147,11 @@ if SERVER then
                     dmg:SetInflictor(self)
                 end
                 dmg:SetDamagePosition(target:GetPos())
-                dmg:SetDamageType(DMG_POISON)
+                if alt_damage then
+                    dmg:SetDamageType(DMG_SLASH)
+                else
+                    dmg:SetDamageType(DMG_POISON)
+                end
 
                 target:TakeDamageInfo(dmg)
             end)
