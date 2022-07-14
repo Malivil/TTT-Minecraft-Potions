@@ -49,7 +49,7 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 if SERVER then
-    CreateConVar("ttt_mc_poison_alt_damage", "0", FCVAR_NONE, "Whether to use an alternate type of damage")
+    CreateConVar("ttt_mc_poison_alt_damage", "1", FCVAR_NONE, "Whether to use an alternate type of damage")
 end
 
 function SWEP:Initialize()
