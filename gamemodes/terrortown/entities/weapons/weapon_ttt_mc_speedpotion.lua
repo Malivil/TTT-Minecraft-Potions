@@ -49,7 +49,7 @@ local HealSound4           = Sound("minecraft_original/glass1.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Hidden               = false
+local Enabled               = false
 local InitWalkSpeed        = 1
 local InitRunSpeed         = 1
 
@@ -67,7 +67,7 @@ function SWEP:Equip()
     self:EmitSound(EquipSound)
 end
 
-function SWEP:PlayerHide()
+function SWEP:SpeedEnable()
     InitWalkSpeed = self:GetOwner():GetWalkSpeed()
     InitRunSpeed = self:GetOwner():GetRunSpeed()
     self:EmitSound(HealSound2)
@@ -80,10 +80,10 @@ function SWEP:PlayerHide()
             self:EmitSound(DestroySound)
         end
     end)
-    Hidden = true
+    Enabled = true
 end
 
-function SWEP:PlayerUnhide()
+function SWEP:SpeedDisable()
     self:EmitSound(HealSound1)
 
     local owner = self:GetOwner()
@@ -93,7 +93,7 @@ function SWEP:PlayerUnhide()
     end
 
     timer.Stop("use_ammo" .. self:EntIndex())
-    Hidden = false
+    Enabled = false
 end
 
 function SWEP:PrimaryAttack()
@@ -128,16 +128,16 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    if Hidden then
-        self:PlayerUnhide()
+    if Enabled then
+        self:SpeedDisable()
     else
-        self:PlayerHide()
+        self:SpeedEnable()
     end
 end
 
 function SWEP:OnRemove()
     timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    if Enabled then self:SpeedDisable() end
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -158,7 +158,7 @@ end
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
     timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    if Enabled then self:SpeedDisable() end
 end
 
 if CLIENT then
