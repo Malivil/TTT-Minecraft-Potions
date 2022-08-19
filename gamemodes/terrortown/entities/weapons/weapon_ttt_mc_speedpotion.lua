@@ -58,6 +58,15 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    local this = self
+    local function StopSpeed()
+        if not IsValid(this) then return end
+        this:SpeedDisable()
+    end
+    hook.Add("TTTPrepareRound", "McSpeedResetTimers_PrepRound" .. self:EntIndex(), StopSpeed)
+    hook.Add("TTTBeginRound", "McSpeedResetTimers_BeginRound" .. self:EntIndex(), StopSpeed)
+    hook.Add("TTTEndRound", "McSpeedResetTimers_EndRound" .. self:EntIndex(), StopSpeed)
+
     if CLIENT then
         self:AddHUDHelp("Left-click to push your target", "Right-click to grant yourself a temporary speed boost", false)
     end
