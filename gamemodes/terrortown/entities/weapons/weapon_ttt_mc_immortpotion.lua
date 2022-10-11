@@ -49,6 +49,10 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 local Hidden               = false
 
+if SERVER then
+    CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_NONE, "Whether to allow users to swap weapons while active")
+end
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -124,7 +128,11 @@ function SWEP:OnRemove()
 end
 
 function SWEP:Holster()
-    return true
+    if not Hidden then
+        return true
+    end
+
+    return not GetConVar("ttt_mc_immort_force_active"):GetBool()
 end
 
 function SWEP:PreDrop()
