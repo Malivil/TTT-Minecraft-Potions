@@ -15,7 +15,6 @@ end
 
 SWEP.Base                  = "weapon_tttbase"
 
-SWEP.HealAmount            = 100
 SWEP.MaxAmmo               = 100
 SWEP.Primary.Delay         = 0.19
 SWEP.Primary.Recoil        = 1.6
@@ -50,13 +49,22 @@ local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 if SERVER then
     CreateConVar("ttt_mc_poison_alt_damage", "1", FCVAR_NONE, "Whether to use an alternate type of damage")
+    CreateConVar("ttt_mc_poison_damage_tick_rate", "1", FCVAR_NONE, "How often (in seconds) to deal damage")
+    CreateConVar("ttt_mc_poison_damage_per_tick", "1", FCVAR_NONE, "How much damage to deal per tick")
     local enabled = CreateConVar("ttt_mc_poison_enabled", "1", FCVAR_ARCHIVE)
+    local max_ammo = CreateConVar("ttt_mc_poison_max_ammo", "100", FCVAR_ARCHIVE)
 
     hook.Add("PreRegisterSWEP", "McPoison_PreRegisterSWEP", function(weap, class)
         if class == "weapon_ttt_mc_poison" then
-            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
-            weap.AutoSpawnable = enabled:GetBool()
-            weap.Spawnable = enabled:GetBool()
+            local is_enabled = enabled:GetBool()
+            weap.AutoSpawnable = is_enabled
+            weap.Spawnable = is_enabled
+
+            local max = max_ammo:GetInt()
+            weap.MaxAmmo = max
+            weap.Primary.ClipSize = max
+            weap.Primary.ClipMax = max
+            weap.Primary.DefaultClip = max
         end
     end)
 end
@@ -90,7 +98,7 @@ if SERVER then
     function SWEP:DoPoison(ent, primary, action)
         local owner = self:GetOwner()
         if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
-            local need = math.min(ent:Health(), self:Clip1(), self.HealAmount)
+            local need = math.min(ent:Health(), self:Clip1(), self.MaxAmmo)
             self:TakePrimaryAmmo(need)
 
             action(owner, ent, need)
@@ -138,11 +146,15 @@ if SERVER then
         end
 
         local ent = tr.Entity
-        local alt_damage = GetConVar("ttt_mc_poison_alt_damage"):GetBool()
         self:DoPoison(ent, true, function(owner, target, damage)
             local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
             table.insert(poisonTimers, timerId)
-            timer.Create(timerId, 1, damage, function()
+            local alt_damage = GetConVar("ttt_mc_poison_alt_damage"):GetBool()
+            local tick_rate = GetConVar("ttt_mc_poison_damage_tick_rate"):GetInt()
+            local damage_per_tick = GetConVar("ttt_mc_poison_damage_per_tick"):GetInt()
+            -- Tick however many times we need to do the total damage (e.g. 20 damage at 5 damage/tick should be 4 ticks)
+            local ticks = math.Round(damage / damage_per_tick)
+            timer.Create(timerId, tick_rate, ticks, function()
                 -- If something happens to the target, stop trying to poison them
                 if not IsValid(target) or not target:Alive() or target:IsSpec() then
                     timer.Remove(timerId)
@@ -150,7 +162,7 @@ if SERVER then
                 end
 
                 local dmg = DamageInfo()
-                dmg:SetDamage(1)
+                dmg:SetDamage(damage_per_tick)
                 dmg:SetAttacker(owner)
                 if IsValid(self) then
                     dmg:SetInflictor(self)

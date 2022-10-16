@@ -15,8 +15,6 @@ end
 
 SWEP.Base                  = "weapon_tttbase"
 
-SWEP.HealAmount            = 20
-SWEP.MaxAmmo               = 100
 SWEP.Primary.Delay         = 0.19
 SWEP.Primary.Recoil        = 1.6
 SWEP.Primary.Automatic     = false
@@ -49,13 +47,20 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 if SERVER then
+    CreateConVar("ttt_mc_health_amount", "20", FCVAR_NONE, "The maximum amount of health to heal the player for")
     local enabled = CreateConVar("ttt_mc_health_enabled", "1", FCVAR_ARCHIVE)
+    local max_ammo = CreateConVar("ttt_mc_health_max_ammo", "100", FCVAR_ARCHIVE)
 
     hook.Add("PreRegisterSWEP", "McHealth_PreRegisterSWEP", function(weap, class)
         if class == "weapon_ttt_mc_healthpotion" then
-            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
-            weap.AutoSpawnable = enabled:GetBool()
-            weap.Spawnable = enabled:GetBool()
+            local is_enabled = enabled:GetBool()
+            weap.AutoSpawnable = is_enabled
+            weap.Spawnable = is_enabled
+
+            local max = max_ammo:GetInt()
+            weap.Primary.ClipSize = max
+            weap.Primary.ClipMax = max
+            weap.Primary.DefaultClip = max
         end
     end)
 end
@@ -77,7 +82,8 @@ end
 function SWEP:DoHeal(ent, primary)
     local owner = self:GetOwner()
     if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) and ent:Health() < ent:GetMaxHealth() then
-        local need = math.min(ent:GetMaxHealth() - ent:Health(), self.HealAmount, self:Clip1())
+        local healAmount = GetConVar("ttt_mc_health_amount"):GetInt()
+        local need = math.min(ent:GetMaxHealth() - ent:Health(), healAmount, self:Clip1())
         self:TakePrimaryAmmo(need)
 
         ent:SetHealth(math.min(ent:GetMaxHealth(), ent:Health() + need))

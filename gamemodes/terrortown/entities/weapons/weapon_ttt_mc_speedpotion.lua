@@ -15,7 +15,6 @@ end
 
 SWEP.Base                  = "weapon_tttbase"
 
-SWEP.HealAmount            = 20
 SWEP.MaxAmmo               = 100
 SWEP.Primary.Delay         = 0.19
 SWEP.Primary.Recoil        = 1.6
@@ -54,13 +53,23 @@ local InitWalkSpeed        = 1
 local InitRunSpeed         = 1
 
 if SERVER then
+    CreateConVar("ttt_mc_speed_walk_mult", "3", FCVAR_NONE, "The multiplier to use for the player's walk speed")
+    CreateConVar("ttt_mc_speed_run_mult", "5", FCVAR_NONE, "The multiplier to use for the player's run speed")
+    CreateConVar("ttt_mc_speed_push_cost", "20", FCVAR_NONE, "The amount of ammo to use when pushing a target")
     local enabled = CreateConVar("ttt_mc_speed_enabled", "1", FCVAR_ARCHIVE)
+    local max_ammo = CreateConVar("ttt_mc_speed_max_ammo", "100", FCVAR_ARCHIVE)
 
     hook.Add("PreRegisterSWEP", "McSpeed_PreRegisterSWEP", function(weap, class)
         if class == "weapon_ttt_mc_speedpotion" then
-            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
-            weap.AutoSpawnable = enabled:GetBool()
-            weap.Spawnable = enabled:GetBool()
+            local is_enabled = enabled:GetBool()
+            weap.AutoSpawnable = is_enabled
+            weap.Spawnable = is_enabled
+
+            local max = max_ammo:GetInt()
+            weap.MaxAmmo = max
+            weap.Primary.ClipSize = max
+            weap.Primary.ClipMax = max
+            weap.Primary.DefaultClip = max
         end
     end)
 end
@@ -83,8 +92,11 @@ function SWEP:SpeedEnable()
     InitWalkSpeed = self:GetOwner():GetWalkSpeed()
     InitRunSpeed = self:GetOwner():GetRunSpeed()
     self:EmitSound(HealSound2)
-    self:GetOwner():SetWalkSpeed(InitWalkSpeed*3)
-    self:GetOwner():SetRunSpeed(InitWalkSpeed*5)
+
+    local walkMult = GetConVar("ttt_mc_speed_walk_mult"):GetInt()
+    self:GetOwner():SetWalkSpeed(InitWalkSpeed*walkMult)
+    local runMult = GetConVar("ttt_mc_speed_run_mult"):GetInt()
+    self:GetOwner():SetRunSpeed(InitRunSpeed*runMult)
     timer.Create("use_ammo" .. self:EntIndex(), 0.1, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
@@ -129,7 +141,8 @@ function SWEP:PrimaryAttack()
         local pushvector = self:GetOwner():GetAimVector() * 640
         pushvector.z = 100
         ent:SetVelocity(pushvector)
-        self:TakePrimaryAmmo(20)
+        local pushCost = GetConVar("ttt_mc_speed_push_cost"):GetInt()
+        self:TakePrimaryAmmo(pushCost)
     else
         self:EmitSound(DenySound)
     end

@@ -15,8 +15,6 @@ end
 
 SWEP.Base                  = "weapon_tttbase"
 
-SWEP.HealAmount            = 20
-SWEP.MaxAmmo               = 100
 SWEP.Primary.Delay         = 0.19
 SWEP.Primary.Recoil        = 1.6
 SWEP.Primary.Automatic     = false
@@ -49,13 +47,21 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 if SERVER then
+    CreateConVar("ttt_mc_jump_primary_use", "15", FCVAR_NONE, "The amount of ammo use to when using on someone else")
+    CreateConVar("ttt_mc_jump_secondary_use", "5", FCVAR_NONE, "The amount of ammo use to when using on yourself")
     local enabled = CreateConVar("ttt_mc_jump_enabled", "1", FCVAR_ARCHIVE)
+    local max_ammo = CreateConVar("ttt_mc_jump_max_ammo", "100", FCVAR_ARCHIVE)
 
     hook.Add("PreRegisterSWEP", "McJump_PreRegisterSWEP", function(weap, class)
         if class == "weapon_ttt_mc_jumppotion" then
-            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
-            weap.AutoSpawnable = enabled:GetBool()
-            weap.Spawnable = enabled:GetBool()
+            local is_enabled = enabled:GetBool()
+            weap.AutoSpawnable = is_enabled
+            weap.Spawnable = is_enabled
+
+            local max = max_ammo:GetInt()
+            weap.Primary.ClipSize = max
+            weap.Primary.ClipMax = max
+            weap.Primary.DefaultClip = max
         end
     end)
 end
@@ -93,7 +99,8 @@ function SWEP:PrimaryAttack()
         ent:EmitSound(HealSound2)
         ent:SetGroundEntity(nil)
         ent:SetVelocity(Vector(0,0,600))
-        self:TakePrimaryAmmo(15)
+        local primaryAmount = GetConVar("ttt_mc_jump_primary_use"):GetInt()
+        self:TakePrimaryAmmo(primaryAmount)
     else
         self:EmitSound(DenySound)
     end
@@ -108,7 +115,8 @@ function SWEP:SecondaryAttack()
     self:EmitSound(HealSound2)
     powner:SetGroundEntity(nil)
     powner:SetVelocity(Vector(0,0,200))
-    self:TakePrimaryAmmo(5)
+    local secondaryAmount = GetConVar("ttt_mc_jump_secondary_use"):GetInt()
+    self:TakePrimaryAmmo(secondaryAmount)
     if self:Clip1() <= 0 then
         if SERVER then self:Remove() end
         self:EmitSound(DestroySound)
