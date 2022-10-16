@@ -49,6 +49,18 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 local Hidden               = false
 
+if SERVER then
+    local enabled = CreateConVar("ttt_mc_invis_enabled", "1", FCVAR_ARCHIVE)
+
+    hook.Add("PreRegisterSWEP", "McInvis_PreRegisterSWEP", function(weap, class)
+        if class == "weapon_ttt_mc_invispotion" then
+            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
+            weap.AutoSpawnable = enabled:GetBool()
+            weap.Spawnable = enabled:GetBool()
+        end
+    end)
+end
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)

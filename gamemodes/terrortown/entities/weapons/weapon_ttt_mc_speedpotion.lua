@@ -53,6 +53,18 @@ local Enabled               = false
 local InitWalkSpeed        = 1
 local InitRunSpeed         = 1
 
+if SERVER then
+    local enabled = CreateConVar("ttt_mc_speed_enabled", "1", FCVAR_ARCHIVE)
+
+    hook.Add("PreRegisterSWEP", "McSpeed_PreRegisterSWEP", function(weap, class)
+        if class == "weapon_ttt_mc_speedpotion" then
+            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
+            weap.AutoSpawnable = enabled:GetBool()
+            weap.Spawnable = enabled:GetBool()
+        end
+    end)
+end
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)

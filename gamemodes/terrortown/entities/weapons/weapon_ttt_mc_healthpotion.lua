@@ -48,6 +48,18 @@ local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
+if SERVER then
+    local enabled = CreateConVar("ttt_mc_health_enabled", "1", FCVAR_ARCHIVE)
+
+    hook.Add("PreRegisterSWEP", "McHealth_PreRegisterSWEP", function(weap, class)
+        if class == "weapon_ttt_mc_healthpotion" then
+            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
+            weap.AutoSpawnable = enabled:GetBool()
+            weap.Spawnable = enabled:GetBool()
+        end
+    end)
+end
+
 function SWEP:Initialize()
     self:SetHoldType("slam")
     self:SetMoveType(MOVETYPE_VPHYSICS)

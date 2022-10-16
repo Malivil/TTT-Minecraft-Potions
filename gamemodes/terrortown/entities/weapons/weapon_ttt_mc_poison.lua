@@ -50,6 +50,15 @@ local DestroySound         = Sound("minecraft_original/glass2.wav")
 
 if SERVER then
     CreateConVar("ttt_mc_poison_alt_damage", "1", FCVAR_NONE, "Whether to use an alternate type of damage")
+    local enabled = CreateConVar("ttt_mc_poison_enabled", "1", FCVAR_ARCHIVE)
+
+    hook.Add("PreRegisterSWEP", "McPoison_PreRegisterSWEP", function(weap, class)
+        if class == "weapon_ttt_mc_poison" then
+            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
+            weap.AutoSpawnable = enabled:GetBool()
+            weap.Spawnable = enabled:GetBool()
+        end
+    end)
 end
 
 function SWEP:Initialize()

@@ -51,6 +51,15 @@ local Hidden               = false
 
 if SERVER then
     CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_NONE, "Whether to allow users to swap weapons while active")
+    local enabled = CreateConVar("ttt_mc_immort_enabled", "1", FCVAR_ARCHIVE)
+
+    hook.Add("PreRegisterSWEP", "McImmort_PreRegisterSWEP", function(weap, class)
+        if class == "weapon_ttt_mc_immortpotion" then
+            print("***Setting " .. class .. " to " .. tostring(enabled:GetBool()))
+            weap.AutoSpawnable = enabled:GetBool()
+            weap.Spawnable = enabled:GetBool()
+        end
+    end)
 end
 
 function SWEP:Initialize()
