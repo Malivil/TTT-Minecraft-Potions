@@ -73,6 +73,9 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalFloat("ttt_mc_invis_tick_rate", GetConVar("ttt_mc_invis_tick_rate"):GetFloat())
+    end
     if CLIENT then
         self:AddHUDHelp("Right-click to grant yourself temporary invisibility", false)
     end
@@ -87,7 +90,7 @@ function SWEP:PlayerHide()
     self:GetOwner():SetMaterial("sprites/heatwave")
     self:EmitSound(HealSound2)
     self:TakePrimaryAmmo(1)
-    local tickRate = GetConVar("ttt_mc_invis_tick_rate"):GetFloat()
+    local tickRate = GetGlobalFloat("ttt_mc_invis_tick_rate", 0.1)
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then

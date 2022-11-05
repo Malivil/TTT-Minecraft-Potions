@@ -70,6 +70,9 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalInt("ttt_mc_health_amount", GetConVar("ttt_mc_health_amount"):GetInt())
+    end
     if CLIENT then
         self:AddHUDHelp("Left-click to heal your target", "Right-click to heal yourself", false)
     end
@@ -82,7 +85,7 @@ end
 function SWEP:DoHeal(ent, primary)
     local owner = self:GetOwner()
     if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) and ent:Health() < ent:GetMaxHealth() then
-        local healAmount = GetConVar("ttt_mc_health_amount"):GetInt()
+        local healAmount = GetGlobalInt("ttt_mc_health_amount", 20)
         local need = math.min(ent:GetMaxHealth() - ent:Health(), healAmount, self:Clip1())
         self:TakePrimaryAmmo(need)
 

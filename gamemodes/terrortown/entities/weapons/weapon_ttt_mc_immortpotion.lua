@@ -50,7 +50,7 @@ local Hidden               = false
 
 if SERVER then
     CreateConVar("ttt_mc_immort_tick_rate", "0.1", FCVAR_NONE, "The amount of time (in seconds) between each use of ammo")
-    CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_NONE, "Whether to allow users to swap weapons while active")
+    CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_NONE, "Whether to prevent users from swapping weapons while active")
     local enabled = CreateConVar("ttt_mc_immort_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_immort_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -74,6 +74,10 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalFloat("ttt_mc_immort_tick_rate", GetConVar("ttt_mc_immort_tick_rate"):GetFloat())
+        SetGlobalBool("ttt_mc_immort_force_active", GetConVar("ttt_mc_immort_force_active"):GetBool())
+    end
     if CLIENT then
         self:AddHUDHelp("Right-click to grant yourself temporary immortality", false)
     end
@@ -90,7 +94,7 @@ function SWEP:PlayerHide()
         self:GetOwner():GodEnable()
     end
     self:TakePrimaryAmmo(1)
-    local tickRate = GetConVar("ttt_mc_immort_tick_rate"):GetFloat()
+    local tickRate = GetGlobalFloat("ttt_mc_immort_tick_rate", 0.1)
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
@@ -149,7 +153,7 @@ function SWEP:Holster()
         return true
     end
 
-    return not GetConVar("ttt_mc_immort_force_active"):GetBool()
+    return not GetGlobalBool("ttt_mc_immort_force_active", false)
 end
 
 function SWEP:PreDrop()

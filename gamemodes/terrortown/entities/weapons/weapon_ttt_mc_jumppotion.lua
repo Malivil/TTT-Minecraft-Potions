@@ -71,6 +71,10 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalInt("ttt_mc_jump_primary_use", GetConVar("ttt_mc_jump_primary_use"):GetInt())
+        SetGlobalInt("ttt_mc_jump_secondary_use", GetConVar("ttt_mc_jump_secondary_use"):GetInt())
+    end
     if CLIENT then
         self:AddHUDHelp("Left-click to boost your target", "Right-click repeatedly to boost yourself", false)
     end
@@ -99,7 +103,7 @@ function SWEP:PrimaryAttack()
         ent:EmitSound(HealSound2)
         ent:SetGroundEntity(nil)
         ent:SetVelocity(Vector(0,0,600))
-        local primaryAmount = GetConVar("ttt_mc_jump_primary_use"):GetInt()
+        local primaryAmount = GetGlobalInt("ttt_mc_jump_primary_use", 15)
         self:TakePrimaryAmmo(primaryAmount)
     else
         self:EmitSound(DenySound)
@@ -115,7 +119,7 @@ function SWEP:SecondaryAttack()
     self:EmitSound(HealSound2)
     powner:SetGroundEntity(nil)
     powner:SetVelocity(Vector(0,0,200))
-    local secondaryAmount = GetConVar("ttt_mc_jump_secondary_use"):GetInt()
+    local secondaryAmount = GetGlobalInt("ttt_mc_jump_secondary_use", 5)
     self:TakePrimaryAmmo(secondaryAmount)
     if self:Clip1() <= 0 then
         if SERVER then self:Remove() end

@@ -79,6 +79,11 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalInt("ttt_mc_speed_walk_mult", GetConVar("ttt_mc_speed_walk_mult"):GetInt())
+        SetGlobalInt("ttt_mc_speed_run_mult", GetConVar("ttt_mc_speed_run_mult"):GetInt())
+        SetGlobalInt("ttt_mc_speed_push_cost", GetConVar("ttt_mc_speed_push_cost"):GetInt())
+    end
     if CLIENT then
         self:AddHUDHelp("Left-click to push your target", "Right-click to grant yourself a temporary speed boost", false)
     end
@@ -93,9 +98,9 @@ function SWEP:SpeedEnable()
     InitRunSpeed = self:GetOwner():GetRunSpeed()
     self:EmitSound(HealSound2)
 
-    local walkMult = GetConVar("ttt_mc_speed_walk_mult"):GetInt()
+    local walkMult = GetGlobalInt("ttt_mc_speed_walk_mult", 3)
     self:GetOwner():SetWalkSpeed(InitWalkSpeed*walkMult)
-    local runMult = GetConVar("ttt_mc_speed_run_mult"):GetInt()
+    local runMult = GetGlobalInt("ttt_mc_speed_run_mult", 5)
     self:GetOwner():SetRunSpeed(InitRunSpeed*runMult)
     timer.Create("use_ammo" .. self:EntIndex(), 0.1, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
@@ -141,7 +146,7 @@ function SWEP:PrimaryAttack()
         local pushvector = self:GetOwner():GetAimVector() * 640
         pushvector.z = 100
         ent:SetVelocity(pushvector)
-        local pushCost = GetConVar("ttt_mc_speed_push_cost"):GetInt()
+        local pushCost = GetGlobalInt("ttt_mc_speed_push_cost", 20)
         self:TakePrimaryAmmo(pushCost)
     else
         self:EmitSound(DenySound)

@@ -74,6 +74,11 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
+    if SERVER then
+        SetGlobalInt("ttt_mc_poison_alt_damage", GetConVar("ttt_mc_poison_alt_damage"):GetInt())
+        SetGlobalInt("ttt_mc_poison_damage_tick_rate", GetConVar("ttt_mc_poison_damage_tick_rate"):GetInt())
+        SetGlobalInt("ttt_mc_poison_damage_per_tick", GetConVar("ttt_mc_poison_damage_per_tick"):GetInt())
+    end
     if CLIENT then
         self:AddHUDHelp("Left-click to poison your target over time", "Right-click to poison yourself instantly", false)
     end
@@ -149,9 +154,9 @@ if SERVER then
         self:DoPoison(ent, true, function(owner, target, damage)
             local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
             table.insert(poisonTimers, timerId)
-            local alt_damage = GetConVar("ttt_mc_poison_alt_damage"):GetBool()
-            local tick_rate = GetConVar("ttt_mc_poison_damage_tick_rate"):GetInt()
-            local damage_per_tick = GetConVar("ttt_mc_poison_damage_per_tick"):GetInt()
+            local alt_damage = GetGlobalInt("ttt_mc_poison_alt_damage", 1)
+            local tick_rate = GetGlobalInt("ttt_mc_poison_damage_tick_rate", 1)
+            local damage_per_tick = GetGlobalInt("ttt_mc_poison_damage_per_tick", 1)
             -- Tick however many times we need to do the total damage (e.g. 20 damage at 5 damage/tick should be 4 ticks)
             local ticks = math.Round(damage / damage_per_tick)
             timer.Create(timerId, tick_rate, ticks, function()
