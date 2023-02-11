@@ -87,7 +87,7 @@ function SWEP:Equip()
     self:EmitSound(EquipSound)
 end
 
-function SWEP:PlayerHide()
+function SWEP:ImmortalityEnable()
     self:GetOwner():SetColor(Color(0, 0, 255, 255))
     self:EmitSound(HealSound2)
     if SERVER then
@@ -105,7 +105,7 @@ function SWEP:PlayerHide()
     Hidden = true
 end
 
-function SWEP:PlayerUnhide()
+function SWEP:ImmortalityDisable()
     self:EmitSound(HealSound1)
 
     local owner = self:GetOwner()
@@ -116,7 +116,7 @@ function SWEP:PlayerUnhide()
         end
     end
 
-    timer.Stop("use_ammo" .. self:EntIndex())
+    timer.Remove("use_ammo" .. self:EntIndex())
     Hidden = false
 end
 
@@ -126,15 +126,15 @@ end
 
 function SWEP:SecondaryAttack()
     if Hidden then
-        self:PlayerUnhide()
+        self:ImmortalityDisable()
     else
-        self:PlayerHide()
+        self:ImmortalityEnable()
     end
 end
 
 function SWEP:OnRemove()
-    timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    timer.Remove("use_ammo" .. self:EntIndex())
+    if Hidden then self:ImmortalityDisable() end
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -158,8 +158,8 @@ end
 
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
-    timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    timer.Remove("use_ammo" .. self:EntIndex())
+    if Hidden then self:ImmortalityDisable() end
 end
 
 if CLIENT then

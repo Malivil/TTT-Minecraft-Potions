@@ -121,7 +121,7 @@ function SWEP:SpeedDisable()
         owner:SetRunSpeed(InitRunSpeed)
     end
 
-    timer.Stop("use_ammo" .. self:EntIndex())
+    timer.Remove("use_ammo" .. self:EntIndex())
     Enabled = false
 end
 
@@ -166,7 +166,7 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:OnRemove()
-    timer.Stop("use_ammo" .. self:EntIndex())
+    timer.Remove("use_ammo" .. self:EntIndex())
     if Enabled then self:SpeedDisable() end
 
     if CLIENT then
@@ -187,7 +187,7 @@ end
 
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
-    timer.Stop("use_ammo" .. self:EntIndex())
+    timer.Remove("use_ammo" .. self:EntIndex())
     if Enabled then self:SpeedDisable() end
 end
 

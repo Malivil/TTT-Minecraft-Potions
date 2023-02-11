@@ -85,7 +85,7 @@ function SWEP:Equip()
     self:EmitSound(EquipSound)
 end
 
-function SWEP:PlayerHide()
+function SWEP:InvisibilityEnable()
     self:GetOwner():SetColor(Color(255, 255, 255, 3))
     self:GetOwner():SetMaterial("sprites/heatwave")
     self:EmitSound(HealSound2)
@@ -101,7 +101,7 @@ function SWEP:PlayerHide()
     Hidden = true
 end
 
-function SWEP:PlayerUnhide()
+function SWEP:InvisibilityDisable()
     local owner = self:GetOwner()
     if IsValid(owner) then
         owner:SetColor(Color(255, 255, 255, 255))
@@ -109,7 +109,7 @@ function SWEP:PlayerUnhide()
     end
 
     self:EmitSound(HealSound1)
-    timer.Stop("use_ammo" .. self:EntIndex())
+    timer.Remove("use_ammo" .. self:EntIndex())
     Hidden = false
 end
 
@@ -119,15 +119,15 @@ end
 
 function SWEP:SecondaryAttack()
     if Hidden then
-        self:PlayerUnhide()
+        self:InvisibilityDisable()
     else
-        self:PlayerHide()
+        self:InvisibilityEnable()
     end
 end
 
 function SWEP:OnRemove()
-    timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    timer.Remove("use_ammo" .. self:EntIndex())
+    if Hidden then self:InvisibilityDisable() end
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -147,8 +147,8 @@ end
 
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
-    timer.Stop("use_ammo" .. self:EntIndex())
-    if Hidden then self:PlayerUnhide() end
+    timer.Remove("use_ammo" .. self:EntIndex())
+    if Hidden then self:InvisibilityDisable() end
 end
 
 if CLIENT then

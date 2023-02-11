@@ -201,7 +201,7 @@ else
 end
 
 function SWEP:OnRemove()
-    timer.Stop("weapon_idle" .. self:EntIndex())
+    timer.Remove("weapon_idle" .. self:EntIndex())
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -216,7 +216,7 @@ function SWEP:OnRemove()
 end
 
 function SWEP:Holster()
-    timer.Stop("weapon_idle" .. self:EntIndex())
+    timer.Remove("weapon_idle" .. self:EntIndex())
     return true
 end
 
