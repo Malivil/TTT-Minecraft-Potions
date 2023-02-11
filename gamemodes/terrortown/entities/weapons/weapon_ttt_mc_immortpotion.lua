@@ -103,9 +103,9 @@ function SWEP:ImmortalityEnable()
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
-            if SERVER then self:Remove() end
             self:ImmortalityDisable()
             self:EmitSound(DestroySound)
+            if SERVER then self:Remove() end
         end
     end)
 end
@@ -115,7 +115,6 @@ function SWEP:ImmortalityDisable()
     -- so we're VERY SURE this disables
     if Enabled then
         self:EmitSound(HealSound1)
-        return
     end
 
     local owner = self:GetOwner()
