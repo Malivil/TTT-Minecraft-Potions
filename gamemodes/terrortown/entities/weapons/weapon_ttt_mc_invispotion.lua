@@ -46,7 +46,7 @@ local HealSound2           = Sound("minecraft_original/invisible_start.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Hidden               = false
+local Enabled               = false
 
 if SERVER then
     CreateConVar("ttt_mc_invis_tick_rate", "0.1", FCVAR_NONE, "The amount of time (in seconds) between each use of ammo")
@@ -98,7 +98,7 @@ function SWEP:InvisibilityEnable()
             self:EmitSound(DestroySound)
         end
     end)
-    Hidden = true
+    Enabled = true
 end
 
 function SWEP:InvisibilityDisable()
@@ -110,7 +110,7 @@ function SWEP:InvisibilityDisable()
 
     self:EmitSound(HealSound1)
     timer.Remove("use_ammo" .. self:EntIndex())
-    Hidden = false
+    Enabled = false
 end
 
 function SWEP:PrimaryAttack()
@@ -118,7 +118,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    if Hidden then
+    if Enabled then
         self:InvisibilityDisable()
     else
         self:InvisibilityEnable()
@@ -127,7 +127,7 @@ end
 
 function SWEP:OnRemove()
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Hidden then self:InvisibilityDisable() end
+    if Enabled then self:InvisibilityDisable() end
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -148,7 +148,7 @@ end
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Hidden then self:InvisibilityDisable() end
+    if Enabled then self:InvisibilityDisable() end
 end
 
 if CLIENT then

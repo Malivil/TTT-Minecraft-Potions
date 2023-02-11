@@ -46,7 +46,7 @@ local HealSound2           = Sound("minecraft_original/godenable.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Hidden               = false
+local Enabled               = false
 
 if SERVER then
     CreateConVar("ttt_mc_immort_tick_rate", "0.1", FCVAR_NONE, "The amount of time (in seconds) between each use of ammo")
@@ -102,7 +102,7 @@ function SWEP:ImmortalityEnable()
             self:EmitSound(DestroySound)
         end
     end)
-    Hidden = true
+    Enabled = true
 end
 
 function SWEP:ImmortalityDisable()
@@ -117,7 +117,7 @@ function SWEP:ImmortalityDisable()
     end
 
     timer.Remove("use_ammo" .. self:EntIndex())
-    Hidden = false
+    Enabled = false
 end
 
 function SWEP:PrimaryAttack()
@@ -125,7 +125,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    if Hidden then
+    if Enabled then
         self:ImmortalityDisable()
     else
         self:ImmortalityEnable()
@@ -134,7 +134,7 @@ end
 
 function SWEP:OnRemove()
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Hidden then self:ImmortalityDisable() end
+    if Enabled then self:ImmortalityDisable() end
 
     if CLIENT then
         if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
@@ -149,7 +149,7 @@ function SWEP:OnRemove()
 end
 
 function SWEP:Holster()
-    if not Hidden then
+    if not Enabled then
         return true
     end
 
@@ -159,7 +159,7 @@ end
 function SWEP:PreDrop()
     self.BaseClass.PreDrop(self)
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Hidden then self:ImmortalityDisable() end
+    if Enabled then self:ImmortalityDisable() end
 end
 
 if CLIENT then
