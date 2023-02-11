@@ -94,18 +94,22 @@ function SWEP:Equip()
 end
 
 function SWEP:SpeedEnable()
-    InitWalkSpeed = self:GetOwner():GetWalkSpeed()
-    InitRunSpeed = self:GetOwner():GetRunSpeed()
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+
+    InitWalkSpeed = owner:GetWalkSpeed()
+    InitRunSpeed = owner:GetRunSpeed()
     self:EmitSound(HealSound2)
 
     local walkMult = GetGlobalInt("ttt_mc_speed_walk_mult", 3)
-    self:GetOwner():SetWalkSpeed(InitWalkSpeed*walkMult)
+    owner:SetWalkSpeed(InitWalkSpeed*walkMult)
     local runMult = GetGlobalInt("ttt_mc_speed_run_mult", 5)
-    self:GetOwner():SetRunSpeed(InitRunSpeed*runMult)
+    owner:SetRunSpeed(InitRunSpeed*runMult)
     timer.Create("use_ammo" .. self:EntIndex(), 0.1, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
             if SERVER then self:Remove() end
+            self:SpeedDisable()
             self:EmitSound(DestroySound)
         end
     end)
@@ -113,7 +117,12 @@ function SWEP:SpeedEnable()
 end
 
 function SWEP:SpeedDisable()
-    self:EmitSound(HealSound1)
+    -- Only play the sound if we're enabled, but run everything else
+    -- so we're VERY SURE this disables
+    if Enabled then
+        self:EmitSound(HealSound1)
+        return
+    end
 
     local owner = self:GetOwner()
     if IsValid(owner) then
@@ -128,14 +137,17 @@ end
 function SWEP:PrimaryAttack()
     if CLIENT then return end
 
-    if self:GetOwner():IsPlayer() then
-        self:GetOwner():LagCompensation(true)
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+
+    if owner:IsPlayer() then
+        owner:LagCompensation(true)
     end
 
     local tr = util.TraceLine({
-        start = self:GetOwner():GetShootPos(),
-        endpos = self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 64,
-        filter = self:GetOwner()
+        start = owner:GetShootPos(),
+        endpos = owner:GetShootPos() + owner:GetAimVector() * 64,
+        filter = owner
     })
 
     local ent = tr.Entity
@@ -143,7 +155,7 @@ function SWEP:PrimaryAttack()
         self:EmitSound(HealSound4)
         ent:EmitSound(HealSound3)
         ent:SetGroundEntity(nil)
-        local pushvector = self:GetOwner():GetAimVector() * 640
+        local pushvector = owner:GetAimVector() * 640
         pushvector.z = 100
         ent:SetVelocity(pushvector)
         local pushCost = GetGlobalInt("ttt_mc_speed_push_cost", 20)
@@ -167,10 +179,11 @@ end
 
 function SWEP:OnRemove()
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Enabled then self:SpeedDisable() end
+    self:SpeedDisable()
 
     if CLIENT then
-        if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
+        local owner = self:GetOwner()
+        if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
 

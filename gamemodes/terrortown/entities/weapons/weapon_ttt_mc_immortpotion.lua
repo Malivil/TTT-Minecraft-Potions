@@ -88,25 +88,35 @@ function SWEP:Equip()
 end
 
 function SWEP:ImmortalityEnable()
-    self:GetOwner():SetColor(Color(0, 0, 255, 255))
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+
+    owner:SetColor(Color(0, 0, 255, 255))
     self:EmitSound(HealSound2)
     if SERVER then
-        self:GetOwner():GodEnable()
+        owner:GodEnable()
     end
     self:TakePrimaryAmmo(1)
+    Enabled = true
+
     local tickRate = GetGlobalFloat("ttt_mc_immort_tick_rate", 0.1)
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
             if SERVER then self:Remove() end
+            self:ImmortalityDisable()
             self:EmitSound(DestroySound)
         end
     end)
-    Enabled = true
 end
 
 function SWEP:ImmortalityDisable()
-    self:EmitSound(HealSound1)
+    -- Only play the sound if we're enabled, but run everything else
+    -- so we're VERY SURE this disables
+    if Enabled then
+        self:EmitSound(HealSound1)
+        return
+    end
 
     local owner = self:GetOwner()
     if IsValid(owner) then
@@ -134,10 +144,11 @@ end
 
 function SWEP:OnRemove()
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Enabled then self:ImmortalityDisable() end
+    self:ImmortalityDisable()
 
     if CLIENT then
-        if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
+        local owner = self:GetOwner()
+        if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
 

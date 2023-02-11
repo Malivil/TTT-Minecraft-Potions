@@ -86,29 +86,40 @@ function SWEP:Equip()
 end
 
 function SWEP:InvisibilityEnable()
-    self:GetOwner():SetColor(Color(255, 255, 255, 3))
-    self:GetOwner():SetMaterial("sprites/heatwave")
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+
+    owner:SetColor(Color(255, 255, 255, 3))
+    owner:SetMaterial("sprites/heatwave")
     self:EmitSound(HealSound2)
     self:TakePrimaryAmmo(1)
+    Enabled = true
+
     local tickRate = GetGlobalFloat("ttt_mc_invis_tick_rate", 0.1)
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
             if SERVER then self:Remove() end
+            self:InvisibilityDisable()
             self:EmitSound(DestroySound)
         end
     end)
-    Enabled = true
 end
 
 function SWEP:InvisibilityDisable()
+    -- Only play the sound if we're enabled, but run everything else
+    -- so we're VERY SURE this disables
+    if Enabled then
+        self:EmitSound(HealSound1)
+        return
+    end
+
     local owner = self:GetOwner()
     if IsValid(owner) then
         owner:SetColor(Color(255, 255, 255, 255))
         owner:SetMaterial("models/glass")
     end
 
-    self:EmitSound(HealSound1)
     timer.Remove("use_ammo" .. self:EntIndex())
     Enabled = false
 end
@@ -127,10 +138,11 @@ end
 
 function SWEP:OnRemove()
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Enabled then self:InvisibilityDisable() end
+    self:InvisibilityDisable()
 
     if CLIENT then
-        if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
+        local owner = self:GetOwner()
+        if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
 
