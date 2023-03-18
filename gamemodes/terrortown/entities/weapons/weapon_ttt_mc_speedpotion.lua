@@ -48,9 +48,9 @@ local HealSound4           = Sound("minecraft_original/glass1.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Enabled               = false
-local InitWalkSpeed        = 1
-local InitRunSpeed         = 1
+local Enabled              = false
+local InitWalkSpeed        = nil
+local InitRunSpeed         = nil
 
 if SERVER then
     CreateConVar("ttt_mc_speed_walk_mult", "3", FCVAR_NONE, "The multiplier to use for the player's walk speed")
@@ -125,8 +125,12 @@ function SWEP:SpeedDisable()
 
     local owner = self:GetOwner()
     if IsValid(owner) then
-        owner:SetWalkSpeed(InitWalkSpeed)
-        owner:SetRunSpeed(InitRunSpeed)
+        if InitWalkSpeed then
+            owner:SetWalkSpeed(InitWalkSpeed)
+        end
+        if InitRunSpeed then
+            owner:SetRunSpeed(InitRunSpeed)
+        end
     end
 
     timer.Remove("use_ammo" .. self:EntIndex())
