@@ -102,30 +102,36 @@ if SERVER then
 
     function SWEP:DoPoison(ent, primary, action)
         local owner = self:GetOwner()
+        local failure = true
         if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) then
             local need = math.min(ent:Health(), self:Clip1(), self.MaxAmmo)
-            self:TakePrimaryAmmo(need)
+            -- Don't actually do the effect if the callback fails
+            if action(owner, ent, need) then
+                failure = false
+                self:TakePrimaryAmmo(need)
 
-            action(owner, ent, need)
-            ent:EmitSound(primary and HealSound2 or HealSound1)
-            if self:Clip1() <= 0 then
-                self:Remove()
-                ent:EmitSound(DestroySound)
+                ent:EmitSound(primary and HealSound2 or HealSound1)
+                if self:Clip1() <= 0 then
+                    self:Remove()
+                    ent:EmitSound(DestroySound)
+                end
+
+                self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+
+                if primary then
+                    self:SetNextPrimaryFire(CurTime() + self:SequenceDuration() + 0.5)
+                else
+                    self:SetNextSecondaryFire(CurTime() + self:SequenceDuration() + 0.5)
+                end
+                owner:SetAnimation(PLAYER_ATTACK1)
+
+                timer.Create("weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function()
+                    if IsValid(self) then self:SendWeaponAnim(ACT_VM_IDLE) end
+                end)
             end
+        end
 
-            self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-
-            if primary then
-                self:SetNextPrimaryFire(CurTime() + self:SequenceDuration() + 0.5)
-            else
-                self:SetNextSecondaryFire(CurTime() + self:SequenceDuration() + 0.5)
-            end
-            owner:SetAnimation(PLAYER_ATTACK1)
-
-            timer.Create("weapon_idle" .. self:EntIndex(), self:SequenceDuration(), 1, function()
-                if IsValid(self) then self:SendWeaponAnim(ACT_VM_IDLE) end
-            end)
-        else
+        if failure then
             owner:EmitSound(DenySound)
             if primary then
                 self:SetNextPrimaryFire(CurTime() + 1)
@@ -153,6 +159,11 @@ if SERVER then
         local ent = tr.Entity
         self:DoPoison(ent, true, function(owner, target, damage)
             local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
+            -- Don't let someone poison the same person twice
+            if timer.Exists(timerId) then
+                return false
+            end
+
             table.insert(poisonTimers, timerId)
             local alt_damage = GetGlobalInt("ttt_mc_poison_alt_damage", 1)
             local tick_rate = GetGlobalInt("ttt_mc_poison_damage_tick_rate", 1)
@@ -181,6 +192,7 @@ if SERVER then
 
                 target:TakeDamageInfo(dmg)
             end)
+            return true
         end)
     end
 
@@ -193,6 +205,7 @@ if SERVER then
             else
                 target:SetHealth(new_hp)
             end
+            return true
         end)
     end
 else
