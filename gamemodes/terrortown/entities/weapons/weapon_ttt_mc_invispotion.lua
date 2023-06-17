@@ -115,8 +115,8 @@ function SWEP:InvisibilityDisable()
 
     local owner = self:GetOwner()
     if IsValid(owner) then
-        owner:SetColor(Color(255, 255, 255, 255))
-        owner:SetMaterial("models/glass")
+        owner:SetColor(COLOR_WHITE)
+        owner:SetMaterial("")
     end
 
     timer.Remove("use_ammo" .. self:EntIndex())
