@@ -159,7 +159,7 @@ if SERVER then
         local ent = tr.Entity
         self:DoPoison(ent, true, function(owner, target, damage)
             local timerId = "McPoisonTick_" .. self:EntIndex() .. "_" .. owner:EntIndex() .. "_" .. target:EntIndex()
-            -- Don't let someone poison the same person twice
+            -- Don't let someone poison the same person twice with the same poison potion
             if timer.Exists(timerId) then
                 return false
             end
