@@ -164,9 +164,15 @@ end
 
 if CLIENT then
     function SWEP:DrawWorldModel()
-        if not self.WorldModelEnt then
+        -- Make sure the model is valid
+        if not self.WorldModelEnt or (self.WorldModelEnt == NULL) then
             self.WorldModelEnt = ClientsideModel(self.WorldModel)
             self.WorldModelEnt:SetNoDraw(true)
+        end
+
+        -- If it isn't, bail
+        if not self.WorldModelEnt or (self.WorldModelEnt == NULL) then
+            return
         end
 
         local owner = self:GetOwner()
