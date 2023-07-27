@@ -47,10 +47,11 @@ local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
+local mc_poison_alt_damage = CreateConVar("ttt_mc_poison_alt_damage", "1", FCVAR_REPLICATED, "Whether to use an alternate type of damage")
+local mc_poison_damage_tick_rate = CreateConVar("ttt_mc_poison_damage_tick_rate", "1", FCVAR_REPLICATED, "How often (in seconds) to deal damage")
+local mc_poison_damage_per_tick = CreateConVar("ttt_mc_poison_damage_per_tick", "1", FCVAR_REPLICATED, "How much damage to deal per tick")
+
 if SERVER then
-    CreateConVar("ttt_mc_poison_alt_damage", "1", FCVAR_NONE, "Whether to use an alternate type of damage")
-    CreateConVar("ttt_mc_poison_damage_tick_rate", "1", FCVAR_NONE, "How often (in seconds) to deal damage")
-    CreateConVar("ttt_mc_poison_damage_per_tick", "1", FCVAR_NONE, "How much damage to deal per tick")
     local enabled = CreateConVar("ttt_mc_poison_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_poison_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -74,11 +75,6 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
-    if SERVER then
-        SetGlobalInt("ttt_mc_poison_alt_damage", GetConVar("ttt_mc_poison_alt_damage"):GetInt())
-        SetGlobalInt("ttt_mc_poison_damage_tick_rate", GetConVar("ttt_mc_poison_damage_tick_rate"):GetInt())
-        SetGlobalInt("ttt_mc_poison_damage_per_tick", GetConVar("ttt_mc_poison_damage_per_tick"):GetInt())
-    end
     if CLIENT then
         self:AddHUDHelp("Left-click to poison your target over time", "Right-click to poison yourself instantly", false)
     end
@@ -165,9 +161,9 @@ if SERVER then
             end
 
             table.insert(poisonTimers, timerId)
-            local alt_damage = GetGlobalInt("ttt_mc_poison_alt_damage", 1)
-            local tick_rate = GetGlobalInt("ttt_mc_poison_damage_tick_rate", 1)
-            local damage_per_tick = GetGlobalInt("ttt_mc_poison_damage_per_tick", 1)
+            local alt_damage = mc_poison_alt_damage:GetBool()
+            local tick_rate = mc_poison_damage_tick_rate:GetInt()
+            local damage_per_tick = mc_poison_damage_per_tick:GetInt()
             -- Tick however many times we need to do the total damage (e.g. 20 damage at 5 damage/tick should be 4 ticks)
             local ticks = math.Round(damage / damage_per_tick)
             timer.Create(timerId, tick_rate, ticks, function()

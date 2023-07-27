@@ -48,8 +48,9 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 local Enabled               = false
 
+local mc_invis_tick_rate = CreateConVar("ttt_mc_invis_tick_rate", "0.1", FCVAR_REPLICATED, "The amount of time (in seconds) between each use of ammo")
+
 if SERVER then
-    CreateConVar("ttt_mc_invis_tick_rate", "0.1", FCVAR_NONE, "The amount of time (in seconds) between each use of ammo")
     local enabled = CreateConVar("ttt_mc_invis_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_invis_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -73,9 +74,6 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
-    if SERVER then
-        SetGlobalFloat("ttt_mc_invis_tick_rate", GetConVar("ttt_mc_invis_tick_rate"):GetFloat())
-    end
     if CLIENT then
         self:AddHUDHelp("Right-click to grant yourself temporary invisibility", false)
     end
@@ -95,7 +93,7 @@ function SWEP:InvisibilityEnable()
     self:TakePrimaryAmmo(1)
     Enabled = true
 
-    local tickRate = GetGlobalFloat("ttt_mc_invis_tick_rate", 0.1)
+    local tickRate = mc_invis_tick_rate:GetFloat()
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then

@@ -46,9 +46,10 @@ local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
+local mc_jump_primary_use = CreateConVar("ttt_mc_jump_primary_use", "15", FCVAR_REPLICATED, "The amount of ammo use to when using on someone else")
+local mc_jump_secondary_use = CreateConVar("ttt_mc_jump_secondary_use", "5", FCVAR_REPLICATED, "The amount of ammo use to when using on yourself")
+
 if SERVER then
-    CreateConVar("ttt_mc_jump_primary_use", "15", FCVAR_NONE, "The amount of ammo use to when using on someone else")
-    CreateConVar("ttt_mc_jump_secondary_use", "5", FCVAR_NONE, "The amount of ammo use to when using on yourself")
     local enabled = CreateConVar("ttt_mc_jump_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_jump_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -71,10 +72,6 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
-    if SERVER then
-        SetGlobalInt("ttt_mc_jump_primary_use", GetConVar("ttt_mc_jump_primary_use"):GetInt())
-        SetGlobalInt("ttt_mc_jump_secondary_use", GetConVar("ttt_mc_jump_secondary_use"):GetInt())
-    end
     if CLIENT then
         self:AddHUDHelp("Left-click to boost your target", "Right-click repeatedly to boost yourself", false)
     end
@@ -103,7 +100,7 @@ function SWEP:PrimaryAttack()
         ent:EmitSound(HealSound2)
         ent:SetGroundEntity(nil)
         ent:SetVelocity(Vector(0,0,600))
-        local primaryAmount = GetGlobalInt("ttt_mc_jump_primary_use", 15)
+        local primaryAmount = mc_jump_primary_use:GetInt()
         self:TakePrimaryAmmo(primaryAmount)
     else
         self:EmitSound(DenySound)
@@ -119,7 +116,7 @@ function SWEP:SecondaryAttack()
     self:EmitSound(HealSound2)
     powner:SetGroundEntity(nil)
     powner:SetVelocity(Vector(0,0,200))
-    local secondaryAmount = GetGlobalInt("ttt_mc_jump_secondary_use", 5)
+    local secondaryAmount = mc_jump_secondary_use:GetInt()
     self:TakePrimaryAmmo(secondaryAmount)
     if self:Clip1() <= 0 then
         if SERVER then self:Remove() end

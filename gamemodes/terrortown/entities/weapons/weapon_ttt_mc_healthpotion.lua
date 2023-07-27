@@ -46,8 +46,9 @@ local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 
+local mc_health_amount = CreateConVar("ttt_mc_health_amount", "20", FCVAR_REPLICATED, "The maximum amount of health to heal the player for")
+
 if SERVER then
-    CreateConVar("ttt_mc_health_amount", "20", FCVAR_NONE, "The maximum amount of health to heal the player for")
     local enabled = CreateConVar("ttt_mc_health_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_health_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -70,9 +71,6 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
-    if SERVER then
-        SetGlobalInt("ttt_mc_health_amount", GetConVar("ttt_mc_health_amount"):GetInt())
-    end
     if CLIENT then
         self:AddHUDHelp("Left-click to heal your target", "Right-click to heal yourself", false)
     end
@@ -85,7 +83,7 @@ end
 function SWEP:DoHeal(ent, primary)
     local owner = self:GetOwner()
     if IsValid(ent) and (ent:IsPlayer() or ent:IsNPC()) and ent:Health() < ent:GetMaxHealth() then
-        local healAmount = GetGlobalInt("ttt_mc_health_amount", 20)
+        local healAmount = mc_health_amount:GetInt()
         local need = math.min(ent:GetMaxHealth() - ent:Health(), healAmount, self:Clip1())
         self:TakePrimaryAmmo(need)
 

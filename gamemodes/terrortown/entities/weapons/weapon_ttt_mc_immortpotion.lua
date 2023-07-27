@@ -48,9 +48,10 @@ local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
 local Enabled               = false
 
+local mc_immort_tick_rate = CreateConVar("ttt_mc_immort_tick_rate", "0.1", FCVAR_REPLICATED, "The amount of time (in seconds) between each use of ammo")
+local mc_immort_force_active = CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_REPLICATED, "Whether to prevent users from swapping weapons while active")
+
 if SERVER then
-    CreateConVar("ttt_mc_immort_tick_rate", "0.1", FCVAR_NONE, "The amount of time (in seconds) between each use of ammo")
-    CreateConVar("ttt_mc_immort_force_active", "0", FCVAR_NONE, "Whether to prevent users from swapping weapons while active")
     local enabled = CreateConVar("ttt_mc_immort_enabled", "1", FCVAR_ARCHIVE)
     local max_ammo = CreateConVar("ttt_mc_immort_max_ammo", "100", FCVAR_ARCHIVE)
 
@@ -74,10 +75,6 @@ function SWEP:Initialize()
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 
-    if SERVER then
-        SetGlobalFloat("ttt_mc_immort_tick_rate", GetConVar("ttt_mc_immort_tick_rate"):GetFloat())
-        SetGlobalBool("ttt_mc_immort_force_active", GetConVar("ttt_mc_immort_force_active"):GetBool())
-    end
     if CLIENT then
         self:AddHUDHelp("Right-click to grant yourself temporary immortality", false)
     end
@@ -99,7 +96,7 @@ function SWEP:ImmortalityEnable()
     self:TakePrimaryAmmo(1)
     Enabled = true
 
-    local tickRate = GetGlobalFloat("ttt_mc_immort_tick_rate", 0.1)
+    local tickRate = mc_immort_tick_rate:GetFloat()
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
@@ -163,7 +160,7 @@ function SWEP:Holster()
         return true
     end
 
-    return not GetGlobalBool("ttt_mc_immort_force_active", false)
+    return not mc_immort_force_active:GetBool()
 end
 
 function SWEP:PreDrop()
