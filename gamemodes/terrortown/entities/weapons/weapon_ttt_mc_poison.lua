@@ -96,6 +96,15 @@ if SERVER then
     hook.Add("TTTBeginRound", "McPoisonResetTimers_BeginRound", StopPoison)
     hook.Add("TTTEndRound", "McPoisonResetTimers_EndRound", StopPoison)
 
+    hook.Add("PostPlayerDeath", "McPoisonResetTimer_PostPlayerDeath", function(ply)
+        local timerSuffix = "_" .. ply:EntIndex()
+        for _, timerId in ipairs(poisonTimers) do
+            if string.EndsWith(timerId, timerSuffix) then
+                timer.Remove(timerId)
+            end
+        end
+    end)
+
     function SWEP:DoPoison(ent, primary, action)
         local owner = self:GetOwner()
         local failure = true
