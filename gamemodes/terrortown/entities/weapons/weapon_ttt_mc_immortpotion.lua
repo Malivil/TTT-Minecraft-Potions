@@ -164,9 +164,9 @@ function SWEP:Holster()
 end
 
 function SWEP:PreDrop()
-    self.BaseClass.PreDrop(self)
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Enabled then self:ImmortalityDisable() end
+    self:ImmortalityDisable()
+    self.BaseClass.PreDrop(self)
 end
 
 if CLIENT then

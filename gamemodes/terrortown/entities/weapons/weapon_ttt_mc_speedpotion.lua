@@ -198,9 +198,9 @@ function SWEP:Holster()
 end
 
 function SWEP:PreDrop()
-    self.BaseClass.PreDrop(self)
     timer.Remove("use_ammo" .. self:EntIndex())
-    if Enabled then self:SpeedDisable() end
+    self:SpeedDisable()
+    self.BaseClass.PreDrop(self)
 end
 
 if CLIENT then
