@@ -40,13 +40,13 @@ SWEP.CustomWorldVector     = Vector(5, -2.7, 0)
 SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
+SWEP.PotionEnabled         = false
 
 local HealSound1           = Sound("minecraft_original/invisible_end.wav")
 local HealSound2           = Sound("minecraft_original/invisible_start.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Enabled               = false
 
 local mc_invis_tick_rate = CreateConVar("ttt_mc_invis_tick_rate", "0.1", FCVAR_REPLICATED, "The amount of time (in seconds) between each use of ammo")
 
@@ -91,7 +91,7 @@ function SWEP:InvisibilityEnable()
     owner:SetMaterial("sprites/heatwave")
     self:EmitSound(HealSound2)
     self:TakePrimaryAmmo(1)
-    Enabled = true
+    self.PotionEnabled = true
 
     local tickRate = mc_invis_tick_rate:GetFloat()
     timer.Create("use_ammo" .. self:EntIndex(), tickRate, 0, function()
@@ -107,7 +107,7 @@ end
 function SWEP:InvisibilityDisable()
     -- Only play the sound if we're enabled, but run everything else
     -- so we're VERY SURE this disables
-    if Enabled then
+    if self.PotionEnabled then
         self:EmitSound(HealSound1)
     end
 
@@ -118,7 +118,7 @@ function SWEP:InvisibilityDisable()
     end
 
     timer.Remove("use_ammo" .. self:EntIndex())
-    Enabled = false
+    self.PotionEnabled = false
 end
 
 function SWEP:PrimaryAttack()
@@ -126,7 +126,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    if Enabled then
+    if self.PotionEnabled then
         self:InvisibilityDisable()
     else
         self:InvisibilityEnable()

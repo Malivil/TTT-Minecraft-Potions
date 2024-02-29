@@ -40,6 +40,9 @@ SWEP.CustomWorldVector     = Vector(5, -2.7, 0)
 SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
+SWEP.PotionEnabled         = false
+SWEP.InitWalkSpeed         = nil
+SWEP.InitRunSpeed          = nil
 
 local HealSound1           = Sound("minecraft_original/speed_end.wav")
 local HealSound2           = Sound("minecraft_original/speed_start.wav")
@@ -48,9 +51,6 @@ local HealSound4           = Sound("minecraft_original/glass1.wav")
 local DenySound            = Sound("minecraft_original/wood_click.wav")
 local EquipSound           = Sound("minecraft_original/pop.wav")
 local DestroySound         = Sound("minecraft_original/glass2.wav")
-local Enabled              = false
-local InitWalkSpeed        = nil
-local InitRunSpeed         = nil
 
 local mc_speed_walk_mult = CreateConVar("ttt_mc_speed_walk_mult", "3", FCVAR_REPLICATED, "The multiplier to use for the player's walk speed")
 local mc_speed_run_mult = CreateConVar("ttt_mc_speed_run_mult", "5", FCVAR_REPLICATED, "The multiplier to use for the player's run speed")
@@ -93,14 +93,14 @@ function SWEP:SpeedEnable()
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
 
-    InitWalkSpeed = owner:GetWalkSpeed()
-    InitRunSpeed = owner:GetRunSpeed()
+    self.InitWalkSpeed = owner:GetWalkSpeed()
+    self.InitRunSpeed = owner:GetRunSpeed()
     self:EmitSound(HealSound2)
 
     local walkMult = mc_speed_walk_mult:GetInt()
-    owner:SetWalkSpeed(InitWalkSpeed*walkMult)
+    owner:SetWalkSpeed(self.InitWalkSpeed * walkMult)
     local runMult = mc_speed_run_mult:GetInt()
-    owner:SetRunSpeed(InitRunSpeed*runMult)
+    owner:SetRunSpeed(self.InitRunSpeed * runMult)
     timer.Create("use_ammo" .. self:EntIndex(), 0.1, 0, function()
         if self:Clip1() <= self.MaxAmmo then self:SetClip1(math.min(self:Clip1() - 1, self.MaxAmmo)) end
         if self:Clip1() <= 0 then
@@ -109,28 +109,28 @@ function SWEP:SpeedEnable()
             self:EmitSound(DestroySound)
         end
     end)
-    Enabled = true
+    self.PotionEnabled = true
 end
 
 function SWEP:SpeedDisable()
     -- Only play the sound if we're enabled, but run everything else
     -- so we're VERY SURE this disables
-    if Enabled then
+    if self.PotionEnabled then
         self:EmitSound(HealSound1)
     end
 
     local owner = self:GetOwner()
     if IsValid(owner) then
-        if InitWalkSpeed then
-            owner:SetWalkSpeed(InitWalkSpeed)
+        if self.InitWalkSpeed then
+            owner:SetWalkSpeed(self.InitWalkSpeed)
         end
-        if InitRunSpeed then
-            owner:SetRunSpeed(InitRunSpeed)
+        if self.InitRunSpeed then
+            owner:SetRunSpeed(self.InitRunSpeed)
         end
     end
 
     timer.Remove("use_ammo" .. self:EntIndex())
-    Enabled = false
+    self.PotionEnabled = false
 end
 
 function SWEP:PrimaryAttack()
@@ -169,7 +169,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-    if Enabled then
+    if self.PotionEnabled then
         self:SpeedDisable()
     else
         self:SpeedEnable()
