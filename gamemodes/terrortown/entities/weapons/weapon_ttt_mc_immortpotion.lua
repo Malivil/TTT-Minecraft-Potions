@@ -78,6 +78,19 @@ function SWEP:Initialize()
     if CLIENT then
         self:AddHUDHelp("Right-click to grant yourself temporary immortality", false)
     end
+
+    if SERVER then
+        hook.Add("TTTDrawHitMarker", "McImmort_TTTDrawHitMarker", function(ent, dmginfo)
+            if not self.PotionEnabled then return end
+
+            local owner = self:GetOwner()
+            if not IsValid(owner) then return end
+
+            if ent == owner then
+                return true, false, true, false
+            end
+        end)
+    end
 end
 
 function SWEP:Equip()
