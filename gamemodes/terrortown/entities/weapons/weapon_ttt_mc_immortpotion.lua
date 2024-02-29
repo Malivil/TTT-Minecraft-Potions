@@ -80,7 +80,7 @@ function SWEP:Initialize()
     end
 
     if SERVER then
-        hook.Add("TTTDrawHitMarker", "McImmort_TTTDrawHitMarker", function(ent, dmginfo)
+        hook.Add("TTTDrawHitMarker", "McImmort_TTTDrawHitMarker_" .. self:EntIndex(), function(ent, dmginfo)
             if not self.PotionEnabled then return end
 
             local owner = self:GetOwner()
