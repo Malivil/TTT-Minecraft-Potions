@@ -40,6 +40,7 @@ SWEP.CustomWorldVector     = Vector(5, -2.7, 0)
 SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
+SWEP.PreviousOwner         = nil
 
 local HealSound1           = Sound("minecraft_original/drink1.wav")
 local HealSound2           = Sound("minecraft_original/glass1.wav")
@@ -80,7 +81,8 @@ function SWEP:Initialize()
     end
 end
 
-function SWEP:Equip()
+function SWEP:Equip(owner)
+    self.PreviousOwner = owner
     self:EmitSound(EquipSound)
 end
 
@@ -222,7 +224,12 @@ function SWEP:OnRemove()
     timer.Remove("weapon_idle" .. self:EntIndex())
 
     if CLIENT then
-        if IsValid(self:GetOwner()) and self:GetOwner() == LocalPlayer() and self:GetOwner():Alive() then
+        local owner = self:GetOwner()
+        if not IsValid(owner) then
+            owner = self.PreviousOwner
+        end
+
+        if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
 
@@ -231,6 +238,8 @@ function SWEP:OnRemove()
             self.WorldModelEnt = nil
         end
     end
+
+    self.PreviousOwner = nil
 end
 
 function SWEP:Holster()

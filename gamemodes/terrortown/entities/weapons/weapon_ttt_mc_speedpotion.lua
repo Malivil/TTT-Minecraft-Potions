@@ -43,6 +43,7 @@ SWEP.Kind                  = WEAPON_NADE
 SWEP.PotionEnabled         = false
 SWEP.InitWalkSpeed         = nil
 SWEP.InitRunSpeed          = nil
+SWEP.PreviousOwner         = nil
 
 local HealSound1           = Sound("minecraft_original/speed_end.wav")
 local HealSound2           = Sound("minecraft_original/speed_start.wav")
@@ -85,7 +86,8 @@ function SWEP:Initialize()
     end
 end
 
-function SWEP:Equip()
+function SWEP:Equip(owner)
+    self.PreviousOwner = owner
     self:EmitSound(EquipSound)
 end
 
@@ -120,6 +122,10 @@ function SWEP:SpeedDisable()
     end
 
     local owner = self:GetOwner()
+    if not IsValid(owner) then
+        owner = self.PreviousOwner
+    end
+
     if IsValid(owner) then
         if self.InitWalkSpeed then
             owner:SetWalkSpeed(self.InitWalkSpeed)
@@ -182,6 +188,10 @@ function SWEP:OnRemove()
 
     if CLIENT then
         local owner = self:GetOwner()
+        if not IsValid(owner) then
+            owner = self.PreviousOwner
+        end
+
         if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
@@ -191,6 +201,8 @@ function SWEP:OnRemove()
             self.WorldModelEnt = nil
         end
     end
+
+    self.PreviousOwner = nil
 end
 
 function SWEP:Holster()

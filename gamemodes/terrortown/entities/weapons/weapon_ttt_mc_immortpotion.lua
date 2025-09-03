@@ -41,6 +41,7 @@ SWEP.CustomAngle           = Angle(180, 90, 0)
 SWEP.CustomViewVector      = Vector(40, -15, -15)
 SWEP.Kind                  = WEAPON_NADE
 SWEP.PotionEnabled         = false
+SWEP.PreviousOwner         = nil
 
 local HealSound1           = Sound("minecraft_original/goddisable.wav")
 local HealSound2           = Sound("minecraft_original/godenable.wav")
@@ -93,7 +94,8 @@ function SWEP:Initialize()
     end
 end
 
-function SWEP:Equip()
+function SWEP:Equip(owner)
+    self.PreviousOwner = owner
     self:EmitSound(EquipSound)
 end
 
@@ -128,6 +130,10 @@ function SWEP:ImmortalityDisable()
     end
 
     local owner = self:GetOwner()
+    if not IsValid(owner) then
+        owner = self.PreviousOwner
+    end
+
     if IsValid(owner) then
         owner:SetColor(Color(255, 255, 255, 255))
         if SERVER then
@@ -157,6 +163,10 @@ function SWEP:OnRemove()
 
     if CLIENT then
         local owner = self:GetOwner()
+        if not IsValid(owner) then
+            owner = self.PreviousOwner
+        end
+
         if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
             RunConsoleCommand("lastinv")
         end
@@ -166,6 +176,8 @@ function SWEP:OnRemove()
             self.WorldModelEnt = nil
         end
     end
+
+    self.PreviousOwner = nil
 end
 
 function SWEP:Holster()
